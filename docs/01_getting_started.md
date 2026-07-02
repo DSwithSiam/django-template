@@ -1,61 +1,80 @@
 # Getting Started
 
-Welcome to the Angelos Django REST API Template. Follow these instructions to set up the project locally.
-
 ## Prerequisites
-- **Python 3.10+**
-- **PostgreSQL** (Optional, SQLite is used by default)
-- **pip** and **virtualenv**
 
-## Quick Setup (Recommended)
-You can use the provided bash script to quickly initialize the project:
+- Python 3.12+
+- pip
+- PostgreSQL (optional — SQLite used by default in development)
+- Redis (optional — required for Celery)
+
+## Setup
+
+### Option 1: Make (Recommended)
+
 ```bash
-chmod +x initial.sh
-./initial.sh
+# Create virtual environment
+make setup
+source .venv/bin/activate
+
+# Install dependencies, copy .env, run migrations
+make install
+
+# Start the server
+make run
 ```
-This script will create a virtual environment, copy the environment file, install dependencies, and run migrations.
 
-## Manual Setup
+### Option 2: Manual
 
-### 1. Virtual Environment
-Create and activate a virtual environment:
 ```bash
+# Create and activate virtual environment
 python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
+source .venv/bin/activate
 
-### 2. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+# Install dependencies
+pip install -r requirements/development.txt
 
-### 3. Environment Variables
-Copy the `.env.example` file to `.env`:
-```bash
+# Set up environment variables
 cp .env.example .env
-```
-Update the `.env` file with your specific configuration (e.g., `DATABASE_URL`, `SECRET_KEY`, `EMAIL_HOST_PASSWORD`).
+# Edit .env with your values
 
-### 4. Database Migrations
-Run the migrations to set up the database schema:
-```bash
-python manage.py makemigrations
+# Run migrations
 python manage.py migrate
-```
 
-### 5. Create Superuser (Optional)
-```bash
+# Create a superuser (optional)
 python manage.py createsuperuser
+
+# Start the server
+python manage.py runserver 0.0.0.0:8000
 ```
 
-### 6. Run Development Server
-```bash
-python manage.py runserver
-```
-The API will be available at `http://127.0.0.1:8000/`. You can access the Swagger UI documentation at `http://127.0.0.1:8000/swagger/`.
+## Using Docker (for database services)
 
-## Running Tests
-This project uses `pytest`. To run tests:
+Start PostgreSQL and Redis without installing them locally:
+
 ```bash
-pytest
+make docker-up    # Starts PostgreSQL + Redis + Adminer
 ```
+
+Then update your `.env`:
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/django_db
+CELERY_BROKER_URL=redis://localhost:6379/0
+```
+
+## Verification
+
+After starting the server, verify everything works:
+
+- **Health Check**: `http://127.0.0.1:8000/health/` → `{"status": "ok"}`
+- **Swagger Docs**: `http://127.0.0.1:8000/swagger/`
+- **Admin Panel**: `http://127.0.0.1:8000/admin/`
+
+## Environment Settings
+
+The project uses split settings. Set `DJANGO_SETTINGS_MODULE` in your `.env`:
+
+| Environment | Module | Notes |
+|-------------|--------|-------|
+| Development | `config.settings.development` | Default. DEBUG=True, SQLite, console emails |
+| Staging | `config.settings.staging` | PostgreSQL required, moderate security |
+| Production | `config.settings.production` | Full security hardening, HTTPS enforced |

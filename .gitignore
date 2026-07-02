@@ -1,15 +1,49 @@
-migrations/
-*.pyc
-__pycache__
-/env
-/venv
-/tmp
-/db.sqlite3
-/media
-!/media/sample
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
 
-/staticfiles
+# Virtual environment
+.venv/
+venv/
+env/
+pytest_cache
+ruff_cache
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# Environment
 .env
-/.venv
 
-stripe.exe
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Docker
+tmp/
+
+# Cache
+cache/*.pickle
