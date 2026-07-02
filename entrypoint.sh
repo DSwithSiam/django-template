@@ -19,14 +19,14 @@ python manage.py collectstatic --no-input
 
 python manage.py migrate
 
-celery -A projectile worker --loglevel=info --concurrency=4 --logfile=tmp/celery-worker.log &
+celery -A config worker --loglevel=info --concurrency=4 --logfile=tmp/celery-worker.log &
 
 # python manage.py runserver 0.0.0.0:8000
 
-# gunicorn projectile.wsgi \
+# gunicorn config.wsgi \
 #     --access-logfile - \
 #     -w 4 \
 #     -b 0.0.0.0:8000
 
-# daphne -u /tmp/daphne.sock projectile.asgi:application
-daphne -b 0.0.0.0 -p 8000 projectile.asgi:application
+# daphne -u /tmp/daphne.sock config.asgi:application
+daphne -b 0.0.0.0 -p 8000 config.asgi:application
