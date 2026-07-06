@@ -125,6 +125,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_CLASSES": (
         "apps.core.throttles.AnonBurstThrottle",
+        "apps.core.throttles.AnonSustainedThrottle",
         "apps.core.throttles.UserBurstThrottle",
     ),
     "DEFAULT_THROTTLE_RATES": {
