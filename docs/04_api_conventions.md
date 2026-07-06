@@ -1,64 +1,89 @@
-# API Conventions & Best Practices
+# API Conventions
 
-To ensure consistency across the project, developers must adhere to the following conventions when building new features.
+## Response Format
 
-## 1. Using the `BaseModel`
-All new models must inherit from `common.models.BaseModel`. This ensures every table has standard metadata.
+Every API response follows this standard envelope:
 
-```python
-from common.models import BaseModel
-from django.db import models
-
-class Product(BaseModel):
-    title = models.CharField(max_length=200)
-```
-You automatically get `status`, `created_at`, and `updated_at` fields.
-
-## 2. Standardized JSON Responses
-Do not return native DRF `Response` objects directly. Instead, wrap your responses using the helpers in `helpers/response.py`.
-
-### Success
-```python
-from helpers.response import response
-
-def list(self, request, *args, **kwargs):
-    queryset = self.get_queryset()
-    serializer = self.get_serializer(queryset, many=True)
-    return response(
-        details="Data fetched successfully.",
-        data=serializer.data
-    )
+### Success Response
+```json
+{
+    "success": true,
+    "details": "Products retrieved successfully.",
+    "code": "SUCCESS",
+    "status_code": 200,
+    "data": [...]
+}
 ```
 
-### Errors
-```python
-from helpers.response import error_response
-
-def my_action(self, request):
-    if not valid:
-        return error_response(
-            details="Invalid action performed.",
-            status_code=400
-        )
-```
-This guarantees the frontend always receives the structure: `{ "success": ..., "details": ..., "code": ..., "data": ... }`.
-
-## 3. Query Parameter Handling
-Use the `QueryParamsMixin` from `helpers/api_view.py` for strictly validating GET request parameters.
-
-```python
-from helpers.api_view import QueryParamsMixin
-from rest_framework import generics
-
-class MyView(QueryParamsMixin, generics.ListAPIView):
-    params_serializer = MyQuerySerializer
-    
-    def get_queryset(self):
-        query = self.get_query() # Validated dict of query parameters
-        return MyModel.objects.filter(**query)
+### Error Response
+```json
+{
+    "success": false,
+    "details": "Invalid email or password.",
+    "code": "VALIDATION_ERROR",
+    "status_code": 400
+}
 ```
 
-## 4. Swagger Documentation
-This project uses `drf-yasg` to auto-generate Swagger docs. Ensure all views and viewsets have clear serializers attached so the docs generate correctly.
+### Response Fields
 
-For custom create views, you can utilize the `@create_view` decorator from `helpers/api_view.py` to seamlessly bind request and response serializers for the Swagger schema.
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | boolean | `true` for 2xx, `false` for 4xx/5xx |
+| `details` | string | Human-readable message |
+| `code` | string | Machine-readable error code |
+| `status_code` | integer | HTTP status code |
+| `data` | object/array | Response payload (only on success) |
+
+## Standard Error Codes
+
+| Code | HTTP Status | When |
+|------|-------------|------|
+| `VALIDATION_ERROR` | 400 | Invalid input data |
+| `NOT_AUTHENTICATED` | 401 | Missing or invalid token |
+| `AUTHENTICATION_FAILED` | 401 | Wrong credentials |
+| `PERMISSION_DENIED` | 403 | Insufficient permissions |
+| `NOT_FOUND` | 404 | Resource doesn't exist |
+| `THROTTLED` | 429 | Rate limit exceeded |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+## Using Response Helpers
+
+```python
+from apps.core.responses import success_response, error_response
+
+# Success
+return success_response("Created.", data=serializer.data, status_code=201)
+
+# Error (rare — centralized handler catches most errors automatically)
+return error_response("Custom error.", code="CUSTOM_ERROR", status_code=400)
+```
+
+## Pagination
+
+All list endpoints are paginated by default (20 items per page).
+
+### Query Parameters
+- `page` — Page number (default: 1)
+- `page_size` — Items per page (default: 20, max: 100)
+
+### Disable Pagination for a View
+```python
+from apps.core.pagination import NoPagination
+
+class MyView(generics.ListAPIView):
+    pagination_class = NoPagination
+```
+
+## API Versioning
+
+All endpoints are prefixed with `/api/v1/`. When breaking changes are needed, create `/api/v2/` routes.
+
+## Rate Limiting
+
+| Scope | Limit | Applied To |
+|-------|-------|------------|
+| Anonymous burst | 30/minute | All anonymous requests |
+| Anonymous sustained | 500/day | All anonymous requests |
+| Authenticated burst | 60/minute | All authenticated requests |
+| Auth login | 5/minute | Login/register endpoints |

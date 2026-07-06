@@ -1,46 +1,44 @@
-services:
-  # app:
-  #   build: .
-  #   container_name: ${PROJECT_NAME}_app
-  #   command: ${APP_ENTRYPOINT:-"/app/entrypoint.sh"}
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - redis
-  #     - db
-  #   ports:
-  #     - 8002:8001
-  #   volumes:
-  #     - .:/app
+# =============================================================================
+# Docker Compose — Development Services
+# =============================================================================
 
+services:
   db:
-    image: postgres:17
-    container_name: ${PROJECT_NAME}_postgres
+    image: postgres:17-alpine
+    container_name: ${PROJECT_NAME:-django}_postgres
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-django_db}
     volumes:
-      - ./tmp/postgres:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "${DB_PORT}:5432"
+      - "${DB_PORT:-5432}:5432"
     restart: unless-stopped
-  
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${PROJECT_NAME:-django}_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   adminer:
     image: adminer
-    container_name: ${PROJECT_NAME}_adminer
+    container_name: ${PROJECT_NAME:-django}_adminer
     restart: unless-stopped
     ports:
-      - ${ADMINER_PORT}:8080
-  
-  pgVector:
-    image: pgvector/pgvector:latest
-    container_name: ${PROJECT_NAME}_pgvector
-    restart: unless-stopped
-    ports:
-      - ${PGVECTOR_PORT}:5432
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    volumes:
-      - ./tmp/pgvector:/var/lib/postgresql/data
+      - "${ADMINER_PORT:-8080}:8080"
+
+volumes:
+  postgres_data:

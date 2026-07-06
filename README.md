@@ -1,212 +1,125 @@
-# Angelos
+# Django DRF Template
 
-A Django REST API project template with JWT authentication, user management, and Docker support.
+A production-grade Django REST Framework template for freelance backend projects. Designed for teams where developers come and go — enforcing conventions so anyone can pick up any project.
 
 ## Features
 
-- Django 4.2.18 with Django REST Framework
-- JWT Authentication using SimpleJWT
-- PostgreSQL database support (with SQLite fallback)
-- API documentation with drf-yasg (Swagger/OpenAPI)
-- CORS headers configuration
-- Docker support
-- User management system
-- Custom permissions and serializers
+- **Django 5.1+** with Django REST Framework 3.15+
+- **JWT Authentication** (SimpleJWT) with email-based login
+- **Service Layer Architecture** — thin views, fat services
+- **Centralized Exception Handling** — consistent JSON error envelopes
+- **Split Settings** — development / staging / production
+- **Celery + Redis** — async task queue with email sending
+- **Docker** — multi-stage production builds
+- **API Documentation** — Swagger/OpenAPI via drf-yasg
+- **Testing** — pytest with coverage, base test utilities
+- **Code Quality** — ruff linting/formatting, pre-commit hooks
+- **Rate Limiting** — throttling on auth endpoints
+- **Pagination** — standard pagination on all list endpoints
 
-## Prerequisites
-
-- Python 3.10+
-- PostgreSQL (optional, SQLite is used by default)
-- pip (Python package manager)
-- Virtual environment (recommended)
-
-## Quick Setup
-
-### Option 1: Using the Setup Script
-
-The fastest way to get started:
+## Quick Start
 
 ```bash
-# Make the script executable
-chmod +x initial.sh
+# 1. Clone the template
+git clone <repository-url> my-project
+cd my-project
 
-# Run the setup script
-./initial.sh
+# 2. Set up virtual environment
+make setup
+source .venv/bin/activate
+
+# 3. Install dependencies
+make install
+
+# 4. Run the server
+make run
 ```
 
-This script will:
-- Create a virtual environment
-- Activate it
-- Copy `.env.sample` to `.env` (if available)
-- Install all dependencies
-- Run migrations
-
-### Option 2: Manual Setup
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-```
-
-2. **Create and activate a virtual environment**
-```bash
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Set up environment variables**
-
-Create a `.env` file in the project root with the following variables:
-
-```env
-# Debug mode (True for development, False for production)
-DEBUG=True
-
-# Django secret key (generate a secure key for production)
-SECRET_KEY=your-secret-key-here
-
-# Database URL (optional, defaults to SQLite)
-# For PostgreSQL: postgresql://user:password@localhost:5432/dbname
-DATABASE_URL=sqlite:///db.sqlite3
-
-# CORS settings (comma-separated URLs)
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-
-# Email configuration (optional)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
-
-# Project configuration (optional)
-PROJECT_NAME=Django Project
-PROJECT_DESCRIPTION=Django REST API Project
-PROJECT_VERSION=v1
-SWAGGER_DEFAULT_API_URL=http://127.0.0.1:8000
-
-# Production settings (optional)
-PROD_ENV_DISABLE_SWAGGER=False
-PROD_ENV_DISABLE_ADMIN=False
-```
-
-5. **Run database migrations**
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-6. **Create a superuser (optional)**
-```bash
-python manage.py createsuperuser
-```
-
-7. **Run the development server**
-```bash
-python manage.py runserver
-```
-
-The API will be available at `http://127.0.0.1:8000/`
-
-## Docker Setup
-
-### Using Docker
-
-1. **Build the Docker image**
-```bash
-docker build -t django-template .
-```
-
-2. **Run the container**
-```bash
-docker run -p 8000:8000 -v $(pwd):/app django-template
-```
-
-### Using Docker Compose (if available)
-
-```bash
-docker-compose up
-```
-
-## Running Tests
-
-This project uses pytest for testing:
-
-```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov
-
-# Run specific test file
-pytest user/tests/
-```
-
-## API Documentation
-
-Once the server is running, access the API documentation:
-
-- **Swagger UI**: `http://127.0.0.1:8000/swagger/`
-- **ReDoc**: `http://127.0.0.1:8000/redoc/`
+The API is now running at `http://127.0.0.1:8000/`
+- **Swagger**: `http://127.0.0.1:8000/swagger/`
+- **Admin**: `http://127.0.0.1:8000/admin/`
+- **Health**: `http://127.0.0.1:8000/health/`
 
 ## Project Structure
 
 ```
-.
-├── common/              # Common models, serializers, and utilities
-├── helpers/             # Helper functions and utilities
-├── projectile/          # Main project configuration
-├── user/               # User management app
-├── cache/              # Cache directory
-├── manage.py           # Django management script
-├── requirements.txt    # Python dependencies
-├── Dockerfile          # Docker configuration
-├── entrypoint.sh       # Docker entrypoint script
-├── initial.sh          # Quick setup script
-└── pytest.ini          # Pytest configuration
+├── apps/                   # All Django apps
+│   ├── common/             # Shared models, enums, auth backends
+│   ├── core/               # Framework utilities (pagination, permissions, etc.)
+│   ├── user/               # Authentication & user management
+│   └── contact/            # CMS: Terms, Policy, FAQ, Contact
+├── config/                 # Django project configuration
+│   ├── settings/           # Split settings (base/dev/staging/prod)
+│   ├── celery.py           # Celery configuration
+│   ├── urls.py             # Root URL routing
+│   └── env.py              # Environment variable loader
+├── docs/                   # Developer documentation
+├── scripts/                # Deployment scripts
+├── requirements/           # Split requirements (base/dev/prod)
+├── Makefile                # Developer commands
+└── pyproject.toml          # Tool configuration (ruff, pytest, mypy)
 ```
 
-## Development
-
-### Collecting Static Files
+## Available Commands
 
 ```bash
-python manage.py collectstatic
+make help          # Show all available commands
+make run           # Start development server
+make test          # Run tests with coverage
+make lint          # Run linter
+make format        # Format code
+make migrate       # Run migrations
+make superuser     # Create superuser
+make docker-up     # Start PostgreSQL + Redis
+make celery        # Start Celery worker
 ```
 
-### Creating New Apps
+## Documentation
 
-```bash
-python manage.py startapp <app_name>
+| Doc | Description |
+|-----|-------------|
+| [Getting Started](docs/01_getting_started.md) | Full setup guide |
+| [Project Structure](docs/02_project_structure.md) | Architecture overview |
+| [Creating an App](docs/03_creating_an_app.md) | Step-by-step app creation |
+| [API Conventions](docs/04_api_conventions.md) | Response format, errors, pagination |
+| [Authentication](docs/05_authentication.md) | JWT auth flow |
+| [Naming Conventions](docs/06_naming_conventions.md) | Code style rules |
+| [Testing Guide](docs/07_testing_guide.md) | Writing tests |
+| [Deployment](docs/08_deployment.md) | Docker & VPS deployment |
+| [Generic Views](docs/09_generic_views_guide.md) | DRF views reference |
+
+## Key Architecture Decisions
+
+### Service Layer Pattern
+Business logic lives in `services.py`, not in views or serializers:
+```
+Request → View (parse/validate) → Service (business logic) → Response
 ```
 
-## Production Deployment
+### Consistent Response Envelope
+Every API response follows this format:
+```json
+{
+    "success": true,
+    "details": "Operation successful.",
+    "code": "SUCCESS",
+    "status_code": 200,
+    "data": { ... }
+}
+```
 
-For production deployment:
-
-1. Set `DEBUG=False` in your `.env` file
-2. Generate a strong `SECRET_KEY`
-3. Configure a PostgreSQL database
-4. Set appropriate `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS`
-5. Use a production-grade server like Gunicorn:
-
+### Environment-Based Settings
 ```bash
-gunicorn projectile.wsgi --access-logfile - -w 4 -b 0.0.0.0:8000
+# Development (default)
+DJANGO_SETTINGS_MODULE=config.settings.development
+
+# Staging
+DJANGO_SETTINGS_MODULE=config.settings.staging
+
+# Production
+DJANGO_SETTINGS_MODULE=config.settings.production
 ```
 
 ## License
 
 See the `LICENSE` file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
